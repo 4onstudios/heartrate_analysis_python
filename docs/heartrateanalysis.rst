@@ -73,6 +73,61 @@ Take into consideration that the scale for RMSSD doesn't typically exceed +/- 13
 More information on the functioning can be found in the rest of the documentation, as well as in the technical paper here [6]_. Information on the valiation can be found in [5]_.
 
 
+Using the backend from a Swift app
+==================================
+
+If you run the optional backend API (``POST /v1/analyze``), a Swift app can send
+PPG/ECG samples as JSON and decode the analysis response:
+
+.. code-block:: swift
+
+    import Foundation
+
+    struct AnalyzeRequest: Encodable {
+        let samples: [Double]
+        let sample_rate: Double
+        let bpm_min: Double
+        let bpm_max: Double
+        let window_size: Double
+        let clean_rr: Bool
+        let calc_freq: Bool
+    }
+
+    struct AnalyzeResponse: Decodable {
+        let sample_rate: Double
+        let duration_seconds: Double
+        let rr_intervals_ms: [Double]
+        let warnings: [String]
+    }
+
+    func analyze(samples: [Double], apiKey: String) async throws -> AnalyzeResponse {
+        let url = URL(string: "https://your-api-host/v1/analyze")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+
+        let payload = AnalyzeRequest(
+            samples: samples,
+            sample_rate: 100,
+            bpm_min: 40,
+            bpm_max: 180,
+            window_size: 0.75,
+            clean_rr: false,
+            calc_freq: false
+        )
+        request.httpBody = try JSONEncoder().encode(payload)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200 else {
+            throw URLError(.badServerResponse)
+        }
+        return try JSONDecoder().decode(AnalyzeResponse.self, from: data)
+    }
+
+A full Swift example client is available in ``examples/backend/HeartPyClient.swift``.
+
+
 References
 ==========
 
