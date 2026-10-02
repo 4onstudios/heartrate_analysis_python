@@ -6,7 +6,7 @@ from datetime import datetime
 
 import numpy as np
 from scipy.io import loadmat
-from scipy.ndimage.filters import uniform_filter1d
+from scipy.ndimage import uniform_filter1d
 
 __all__ = ['get_data',
            'get_samplerate_mstimer',

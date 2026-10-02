@@ -15,8 +15,10 @@ An 'Examples' folder has been added to the repo which will be expanded soon. Now
 Colorblind support has been added, see [this notebook in the examples folder](https://github.com/paulvangentcom/heartrate_analysis_python/blob/master/examples/6_colorblind_mode/Colorblind_mode.ipynb)
 
 # Installation
+
+This checkout requires Python 3.10 or newer. Install the local package with pip:
 ```
-python setup.py install
+python -m pip install .
 ```
 
 Alternatively, we're also on PIP:
@@ -26,12 +28,44 @@ python -m pip install heartpy
 
 That's it! Note that Github always has the newest version.
 
+## Python backend and mobile API
+
+This fork adds a framework-independent, JSON-ready analysis interface:
+
+```python
+import heartpy as hp
+from heartpy.backend import analyze_signal
+
+samples, _ = hp.load_exampledata(0)
+result = analyze_signal(samples, sample_rate=100)
+print(result["measures"]["bpm"])
+print(result["peaks"])  # indices, times, original amplitudes, accepted/rejected
+```
+
+To expose it to iOS or Android over HTTP, install the optional backend extra
+from this checkout:
+
+```bash
+python -m pip install ".[backend]"
+python -m heartpy.backend --host 0.0.0.0 --port 8000
+```
+
+The API accepts raw PPG/ECG samples at `POST /v1/analyze`. Interactive API docs
+are at `/docs`. You can also import `create_app()` and mount the API inside an
+existing Python backend. The analysis function itself does not require FastAPI.
+
+See [the backend integration guide](docs/backend.md) for request and response
+formats, authentication, package installation, and Swift/Android client examples.
+The backend extra is supplied by this fork; a plain PyPI `heartpy` installation
+does not include these changes until they are published.
+
 # Documentation
 
 The official documentation is online! [You can find the official documentation here](https://python-heart-rate-analysis-toolkit.readthedocs.io)
 
-# Python 2.7
-The module compiles and and runs fine on Python 2.7, **but** the some unit tests fail.
+# Python versions
+This backend-enabled release supports Python 3.10 and newer. Older HeartPy
+releases are needed for applications that still use legacy Python versions.
 
 # Tutorial notebooks are now available in Examples/
 These show how to handle various analysis tasks with HeartPy, from smartwatch data, smart ring data, regular PPG, and regular (and very noisy) ECG. The notebooks sometimes don't render through the github engine, so either open them locally, or use an online viewer like [nbviewer](https://nbviewer.jupyter.org/).
