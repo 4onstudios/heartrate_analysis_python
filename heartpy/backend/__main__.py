@@ -14,7 +14,7 @@ def main():
     try:
         import uvicorn
     except ModuleNotFoundError:
-        parser.error("Install the patched package with pip install '.[backend]' first.")
+        parser.error("Install this package with pip install '.[backend]' first.")
     uvicorn.run(
         "heartpy.backend.api:create_app",
         factory=True,

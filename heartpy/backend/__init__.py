@@ -13,7 +13,7 @@ def create_app(**kwargs):
         if exc.name in {"fastapi", "pydantic", "starlette"}:
             raise ImportError(
                 "The HTTP API requires the backend extra: "
-                "install the patched package with pip install '.[backend]'."
+                "install this package with pip install '.[backend]'."
             ) from exc
         raise
     return factory(**kwargs)

@@ -1,4 +1,4 @@
-"""Optional HTTP adapter. Install the patched package's ``backend`` extra."""
+"""Optional HTTP adapter. Install this package's ``backend`` extra."""
 
 import hmac
 import os

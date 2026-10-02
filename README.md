@@ -43,7 +43,7 @@ print(result["peaks"])  # indices, times, original amplitudes, accepted/rejected
 ```
 
 To expose it to iOS or Android over HTTP, install the optional backend extra
-from this patched checkout:
+from this checkout:
 
 ```bash
 python -m pip install ".[backend]"

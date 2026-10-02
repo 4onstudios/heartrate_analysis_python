@@ -7,12 +7,10 @@ or database are needed for a request.
 
 ## Install
 
-Use Python 3.10 or newer. Apply the patch at the repository root, then install
-from that checkout into your backend's environment:
+Use Python 3.10 or newer. From the repository root, install this checkout into
+your backend's environment:
 
 ```bash
-git apply --check /path/to/heartpy-backend.patch
-git apply /path/to/heartpy-backend.patch
 python -m pip install .
 ```
 
