@@ -13,6 +13,9 @@ from .datautils import MAD, rolling_mean, outliers_iqr_method, outliers_modified
 from .filtering import quotient_filter
 import heartpy as hp
 
+# NumPy 2.x renamed trapz; keep compatibility with both supported families.
+_trapezoid = getattr(np, 'trapezoid', None) or np.trapz
+
 
 __all__ = ['calc_rr',
            'update_rr',
@@ -574,9 +577,9 @@ def calc_fd_measures(method='welch', welch_wsize=240, square_spectrum=False, mea
 
         # compute absolute power band measures (units of ms^2)
         df = frq[1] - frq[0]
-        measures['vlf'] = np.trapz(abs(psd[(frq >= 0.0033) & (frq < 0.04)]), dx=df)
-        measures['lf'] = np.trapz(abs(psd[(frq >= 0.04) & (frq < 0.15)]), dx=df)
-        measures['hf'] = np.trapz(abs(psd[(frq >= 0.15) & (frq < 0.4)]), dx=df)
+        measures['vlf'] = _trapezoid(abs(psd[(frq >= 0.0033) & (frq < 0.04)]), dx=df)
+        measures['lf'] = _trapezoid(abs(psd[(frq >= 0.04) & (frq < 0.15)]), dx=df)
+        measures['hf'] = _trapezoid(abs(psd[(frq >= 0.15) & (frq < 0.4)]), dx=df)
         measures['lf/hf'] = measures['lf'] / measures['hf']
 
         measures['p_total'] = measures['vlf'] + measures['lf'] + measures['hf']
