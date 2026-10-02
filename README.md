@@ -59,6 +59,87 @@ formats, authentication, package installation, and Swift/Android client examples
 The backend extra is supplied by this fork; a plain PyPI `heartpy` installation
 does not include these changes until they are published.
 
+### Integrate in your own external API service (Django + DRF)
+
+If you already run a Django API, install this package in that service and call
+`analyze_signal()` from your endpoint.
+
+```python
+# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+from heartpy.backend import analyze_signal, InvalidSignalError, AnalysisError
+
+
+class AnalyzeHeartSignalView(APIView):
+    def post(self, request):
+        try:
+            result = analyze_signal(
+                samples=request.data["samples"],
+                sample_rate=float(request.data["sample_rate"]),
+                bpm_min=request.data.get("bpm_min", 40),
+                bpm_max=request.data.get("bpm_max", 180),
+                window_size=request.data.get("window_size", 0.75),
+                clean_rr=request.data.get("clean_rr", False),
+                calc_freq=request.data.get("calc_freq", False),
+            )
+            return Response(result, status=status.HTTP_200_OK)
+        except InvalidSignalError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        except AnalysisError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+```
+
+This lets your external service remain the public API surface (auth, rate-limit,
+logging), while HeartPy stays an internal package dependency.
+
+For full request validation and production notes, see
+[docs/backend.md](docs/backend.md#import-from-your-existing-backend).
+
+### Integrate in your own external API service (FastAPI)
+
+If your external service is FastAPI, call `analyze_signal()` directly in your
+route and keep auth/rate-limit/logging in your own API layer.
+
+```python
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
+from heartpy.backend import analyze_signal, InvalidSignalError, AnalysisError
+
+app = FastAPI()
+
+
+class AnalyzeRequest(BaseModel):
+    samples: list[float]
+    sample_rate: float
+    bpm_min: float = 40
+    bpm_max: float = 180
+    window_size: float = 0.75
+    clean_rr: bool = False
+    calc_freq: bool = False
+
+
+@app.post("/api/v1/heart/analyze")
+def analyze(req: AnalyzeRequest):
+    try:
+        return analyze_signal(
+            samples=req.samples,
+            sample_rate=req.sample_rate,
+            bpm_min=req.bpm_min,
+            bpm_max=req.bpm_max,
+            window_size=req.window_size,
+            clean_rr=req.clean_rr,
+            calc_freq=req.calc_freq,
+        )
+    except InvalidSignalError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    except AnalysisError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+```
+
 # Documentation
 
 The official documentation is online! [You can find the official documentation here](https://python-heart-rate-analysis-toolkit.readthedocs.io)
